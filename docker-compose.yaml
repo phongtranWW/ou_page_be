@@ -1,0 +1,78 @@
+services:
+  be:
+    image: phongtranww/ou_page_be:v1
+    container_name: ou_page_be
+    ports:
+      - "3000:3000"
+    networks:
+      - ou_page
+    environment:
+      - TYPEORM_HOST=ou_page_db
+      - TYPEORM_PORT=5432
+      - TYPEORM_USERNAME=ou_admin
+      - TYPEORM_PASSWORD=ou_admin_2025
+      - TYPEORM_DATABASE=ou
+      - TYPEORM_SYNCHRONIZE=false
+      - S3_REGION=ap-southeast-1
+      - S3_ACCESS_KEY_ID=ou_admin
+      - S3_SECRET_ACCESS_KEY=ou_admin_2025
+      - S3_ENDPOINT=http://minio:9000
+      - S3_FORCE_PATH_STYLE=true
+      - S3_BUCKET=ou-page
+    restart: "no"
+    depends_on:
+      - postgres
+      - minio
+      - minio-init
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: ou_page_storage
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - ou_page_storage_data:/data
+    environment:
+      - MINIO_ROOT_USER=ou_admin
+      - MINIO_ROOT_PASSWORD=ou_admin_2025
+    networks:
+      - ou_page
+    command: ["server", "/data", "--console-address", ":9001"]
+    restart: "no"
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set ou-page http://minio:9000 ou_admin ou_admin_2025;
+      mc mb ou-page/ou-page;
+      mc anonymous set public ou-page/ou-page;
+      exit 0;
+      "
+    networks:
+      - ou_page
+  postgres:
+    container_name: ou_page_db
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ou
+      POSTGRES_USER: ou_admin
+      POSTGRES_PASSWORD: ou_admin_2025
+    networks:
+      - ou_page
+    volumes:
+      - ou_page_data:/var/lib/postgresql/data
+      - ./ou.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+    restart: "no"
+networks:
+  ou_page:
+    driver: bridge
+volumes:
+  ou_page_storage_data:
+    driver: local
+  ou_page_data:
+    driver: local
