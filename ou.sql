@@ -21,8 +21,7 @@ CREATE TABLE faculty_presidents (
     name VARCHAR,
     degree VARCHAR,
     image_url TEXT NOT NULL,
-    position VARCHAR,
-    term VARCHAR,
+    positions VARCHAR,
     priority INTEGER DEFAULT 5,
     faculty faculty_enum NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -46,8 +45,7 @@ CREATE TABLE unit_presidents (
     name VARCHAR NULL,
     degree VARCHAR NULL,
     image_url TEXT NOT NULL,
-    position VARCHAR NULL,
-    term VARCHAR NULL,
+    positions VARCHAR NULL,
     priority INTEGER DEFAULT 5,
     unit unit_enum NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
